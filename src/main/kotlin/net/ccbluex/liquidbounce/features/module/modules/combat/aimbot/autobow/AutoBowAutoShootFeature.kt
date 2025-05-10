@@ -19,8 +19,17 @@ import net.minecraft.item.TridentItem
 import net.minecraft.util.math.Box
 import net.minecraft.util.math.MathHelper
 import net.minecraft.util.math.Vec3d
+import net.ccbluex.liquidbounce.utils.client.player
+import net.ccbluex.liquidbounce.utils.client.world
 
 object AutoBowAutoShootFeature : ToggleableConfigurable(ModuleAutoBow, "AutoShoot", true) {
+
+    // Dynamic charge and release timing settings
+    val partialChargeRange by float("PartialChargeRange", 10.0F, 1.0F..50.0F, suffix = "blocks")
+    val partialChargeMultiplier by float("PartialChargeMultiplier", 0.7F, 0.1F..1.0F)
+    val minStableAimTicks by int("MinStableAimTicks", 2, 1..10)
+
+    private var aimStableCount = 0
 
     val charged by int("Charged", 15, 3..20, suffix = "ticks")
 
@@ -66,7 +75,20 @@ object AutoBowAutoShootFeature : ToggleableConfigurable(ModuleAutoBow, "AutoShoo
             return@handler
         }
 
-        if (player.itemUseTime < charged + getChargedRandom()) { // Wait until the bow is fully charged
+        // Determine dynamic charge ticks based on target distance
+        val baseChargedTicks = if (AutoBowAimbotFeature.enabled && AutoBowAimbotFeature.targetTracker.target != null) {
+            val target = AutoBowAimbotFeature.targetTracker.target!!
+            val dist = player.pos.distanceTo(target.pos)
+            if (dist <= partialChargeRange) {
+                (charged * partialChargeMultiplier).toInt().coerceIn(3, charged)
+            } else {
+                charged
+            }
+        } else {
+            charged
+        }
+        val requiredTicks = baseChargedTicks + getChargedRandom()
+        if (player.itemUseTime < requiredTicks) {
             return@handler
         }
 
@@ -88,13 +110,20 @@ object AutoBowAutoShootFeature : ToggleableConfigurable(ModuleAutoBow, "AutoShoo
             val targetRotation = RotationManager.activeRotationTarget ?: return@handler
 
             val aimDifference = RotationManager.serverRotation.angleTo(targetRotation.rotation)
-
             if (aimDifference > aimThreshold) {
+                aimStableCount = 0
+                return@handler
+            } else {
+                aimStableCount++
+            }
+            if (aimStableCount < minStableAimTicks) {
                 return@handler
             }
         }
 
+        // Release the shot
         forceUncharged = true
+        aimStableCount = 0
         updateChargeRandom()
     }
 

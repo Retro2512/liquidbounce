@@ -86,46 +86,52 @@ The `ProjectileNotifier` module iterates through players, checks held items, and
 
 ## AutoBow Module
 
-### User Requirements
-- Improve the AutoBow module to make bow shots more consistently accurate at hitting targets: integrate trajectory simulation into aiming, tune prediction, pre-filter targets, and minimize charge-time jitter.
-- Solutions must be client-side and silent to avoid detection.
-- Focus on robust, guaranteed fixes rather than temporary bandaids.
-
-### Roadmap/Todo List
-- Integrate target-hit simulation into the aimbot feature so only aim angles that produce a hit are chosen.
-- Pre-filter candidate targets by `shouldBeAttacked`, line-of-sight, and within a configurable aim cone to reduce solver load.
-- Tune `predictionFactor` dynamically based on target distance/velocity or provide separate configs for bow/trident/crossbow physics.
-- Expose or disable `chargedRandom` jitter for a consistent full draw, or allow user to set jitter to zero in combat.
-- Add early-exit in simulation when arrow collides with blocks or leaves world bounds, and limit simulation ticks based on distance.
-- Clear the rotation target in `onStopUsingItem` to avoid camera-lock after firing.
-- Optionally add a visual indicator when the bow is fully charged and ready to auto-fire.
+### User Requirements for AutoBow Feature
+- Improve accuracy of the AutoBow module to ensure consistent and precise targeting.
+- Address issues with moving targets, particularly overshooting when targets move slightly (e.g., 1-2 blocks back and forth).
+- Ensure the solution remains client-side and silent to avoid detection.
+- Focus on robust, foolproof solutions rather than temporary fixes or band-aid approaches.
 
 ### Detailed Plan for AutoBow Accuracy Improvement
-1. **Advanced Movement Prediction**: Enhance target tracking with velocity-based prediction and lag compensation based on ping.
-2. **Accurate Projectile Trajectory Calculation**: Refine bow charge velocity, gravity, and drag calculations, with optional calibration.
-3. **Optimized Charge and Release Timing**: Ensure full charge for maximum accuracy, with options for partial charge at close range.
-4. **Dynamic Hitbox Targeting**: Adjust aim point based on distance and target posture.
-5. **Environmental and Obstruction Handling**: Delay shots if path is blocked, adjust for water or other effects.
-6. **Silent Operation and Anti-Cheat Evasion**: Use silent rotations and hotbar management.
-7. **Debugging and Feedback Loop**: Log predicted vs. actual outcomes for continuous refinement.
+1. **Enhanced Movement Prediction**:
+   - Implement an adaptive prediction factor based on velocity history to handle erratic movements.
+   - Incorporate lag compensation using ping to align with server-side target positions.
+   - Add behavioral pattern detection to adjust aiming lead based on movement type (strafing, sprinting, etc.).
+2. **Improved Projectile Trajectory Calculation**:
+   - Refine trajectory models in both close-range (Polynomial) and long-range (Cydhranian) calculators to account for velocity.
+   - Use dynamic hitbox targeting to adjust aim points based on distance and movement.
+   - Include environmental checks for water or obstructions to delay or adjust shots.
+3. **Optimized Charge and Release Timing**:
+   - Introduce variable charge levels based on target distance for optimal firing rate and accuracy.
+   - Synchronize release with stable aim within a tight rotation threshold.
+4. **Robustness Against Edge Cases**:
+   - Detect velocity spikes to prevent overshooting on sudden movements.
+   - Implement a fallback direct aiming mode for unpredictable target behavior.
+5. **Silent Operation and Anti-Cheat Evasion**:
+   - Maintain silent rotations and hotbar management to avoid detection.
+6. **Debugging and Feedback Loop**:
+   - Add optional logging of prediction vs. actual outcomes for refinement.
+   - Include a toggleable visual trajectory indicator for debugging.
 
 ### Context and Integration
-- **Past Features**: Builds on existing aiming and shooting logic.
-- **Current Task**: Focuses on precision enhancements for AutoBow.
+- **Past Features**: Builds on existing aiming and shooting logic in AutoBow.
+- **Current Task**: Focuses on precision enhancements for moving targets.
 - **Future Integration**: Can be combined with other combat modules for seamless melee and ranged combat strategies.
 
 ## Project File Tree
 - **src/main/kotlin/net/ccbluex/liquidbounce/features/module/modules/combat/**: Contains combat-related modules.
   - **aimbot/ModuleAutoBow.kt**: Main AutoBow module.
   - **aimbot/autobow/**: Subdirectory with specific features like AutoShoot, Aimbot, and FastCharge.
-- **utils/aiming/**: Likely contains utilities for rotation and projectile calculations.
+- **utils/aiming/**: Contains utilities for rotation and projectile calculations.
 
 ## Roadmap and Todo List
 - **Overall Program Workings**: LiquidBounce is a Minecraft client mod with various combat and utility modules, including AutoBow for automated ranged attacks.
-- **Features Implemented So Far**: Basic AutoBow with aiming, auto-shooting, and fast charging capabilities.
-- **In-Progress Task**: Analyzing and planning accuracy improvements for AutoBow.
-- **Next Steps**:
-  1. Review detailed code in `ModuleAutoBow.kt`, `AutoBowAimbotFeature.kt`, and related files to confirm exact aiming logic.
-  2. Propose specific code edits for movement prediction, trajectory calculation, and dynamic targeting.
-  3. Test changes in a controlled environment to validate accuracy improvements without risking detection.
-  4. Integrate with broader combat strategies for cohesive gameplay enhancements. 
+- **Features Implemented So Far**: Basic AutoBow functionality with aiming and auto-shooting based on bow charge.
+- **In-Progress Tasks**: Enhancing AutoBow accuracy with advanced prediction and trajectory calculation.
+- **Next Steps**: Implement the proposed changes to movement prediction, trajectory modeling, and release timing. Test extensively with moving targets to validate improvements. Integrate with other combat modules if applicable.
+
+**Roadmap and Todo List**
+- **Overall Program Workings**: LiquidBounce is a Minecraft client mod with various combat and utility modules, including AutoBow for automated ranged attacks.
+- **Features Implemented So Far**: Basic AutoBow functionality; adaptive movement prediction with erratic movement detection and ping compensation; dynamic partial charge based on target distance; aim stability checks with configurable stable ticks; integrated ping compensation.
+- **In-Progress Tasks**: None; AutoBow accuracy improvements have been implemented.
+- **Next Steps**: Test in-game and tune configurations: `PingCompensation`, `ErraticReduction`, `VelocityHistoryTicks`, `PartialChargeRange`, `PartialChargeMultiplier`, and `MinStableAimTicks` for optimal performance against moving targets and varying network conditions. 
