@@ -43,7 +43,7 @@ object EspBoxMode : EspMode("Box") {
     @Suppress("unused")
     private val renderHandler = handler<WorldRenderEvent> { event ->
         val matrixStack = event.matrixStack
-        val entitiesWithBoxes = RenderedEntities.map { entity ->
+        val entitiesWithBoxes = RenderedEntities.filter { !it.isInvisible }.map { entity ->
             val dimensions = entity.getDimensions(entity.pose)
             val d = dimensions.width.toDouble() / 2.0
             val box = Box(
@@ -56,7 +56,7 @@ object EspBoxMode : EspMode("Box") {
             val world = MinecraftClient.getInstance().world ?: return@handler
             world.entities
                 .filterIsInstance<PlayerEntity>()
-                .filter { it.isInvisible && it !in RenderedEntities }
+                .filter { it.isInvisible }
                 .forEach { entity ->
                     val dimensions = entity.getDimensions(entity.pose)
                     val d = dimensions.width.toDouble() / 2.0

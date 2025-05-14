@@ -29,6 +29,7 @@ import net.ccbluex.liquidbounce.utils.entity.interpolateCurrentPosition
 import net.minecraft.util.math.Box
 import net.minecraft.client.MinecraftClient
 import net.minecraft.entity.player.PlayerEntity
+import net.ccbluex.liquidbounce.render.utils.rainbow
 
 object EspOutlineMode : EspMode("Outline", requiresTrueSight = true) {
 
@@ -39,7 +40,7 @@ object EspOutlineMode : EspMode("Outline", requiresTrueSight = true) {
     @Suppress("unused")
     private val renderHandler = handler<WorldRenderEvent> { event ->
         val matrixStack = event.matrixStack
-        val entitiesWithBoxes = RenderedEntities.map { entity ->
+        val entitiesWithBoxes = RenderedEntities.filter { !it.isInvisible }.map { entity ->
             val dims = entity.getDimensions(entity.pose)
             val d = dims.width.toDouble() / 2.0
             entity to Box(-d, 0.0, -d, d, dims.height.toDouble(), d)
@@ -47,7 +48,7 @@ object EspOutlineMode : EspMode("Outline", requiresTrueSight = true) {
         if (seeInvis) {
             val world = MinecraftClient.getInstance().world ?: return@handler
             world.entities.filterIsInstance<PlayerEntity>()
-                .filter { it.isInvisible && it !in RenderedEntities }
+                .filter { it.isInvisible }
                 .forEach { entity ->
                     val dims = entity.getDimensions(entity.pose)
                     val d = dims.width.toDouble() / 2.0
@@ -58,7 +59,7 @@ object EspOutlineMode : EspMode("Outline", requiresTrueSight = true) {
         renderEnvironmentForWorld(matrixStack) {
             BoxRenderer.drawWith(this) {
                 entitiesWithBoxes.forEach { (entity, box) ->
-                    val colorRaw = getColor(entity)
+                    val colorRaw = if (entity.isInvisible) rainbow() else getColor(entity)
                     val alpha = if (entity.isInvisible) invisOutlineAlpha else normalOutlineAlpha
                     val outlineColor = colorRaw.with(a = alpha)
                     val fillColor = colorRaw.with(a = 0)
