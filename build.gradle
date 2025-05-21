@@ -181,7 +181,7 @@ dependencies {
 
     // JCEF Support
     includeModDependency "com.github.CCBlueX:mcef:${project.mcef_version}"
-    includeDependency "com.github.CCBlueX:netty-httpserver:2.1.1"
+    includeDependency "com.github.CCBlueX:netty-httpserver:2.2.1"
 
     // Discord RPC Support
     includeDependency "com.github.CCBlueX:DiscordIPC:4.0.0"
